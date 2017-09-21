@@ -1,17 +1,10 @@
-$('#borrowed').on('click', '.returnButton', function () {
-    var dataItem = $.view(this).data;
-    if (libraryController.returnBook(dataItem.bookId)) {
-        $('#main-board').load('library/library.html');
-    }
-});
-
 $('#addBook').click(function () {
-    var inputBookId = $('#inputBookId').val();
-    var inputBookName = $('#inputBookName').val();
+    var inputBookId = $('#inputAddBookId').val();
+    var inputBookName = $('#inputAddBookName').val();
     if (isAllNumber(inputBookId) && inputBookName !== '') {
-        var flag = libraryController.borrowBook(inputBookName, inputBookId);
+        var flag = libraryController.addBook(inputBookId, inputBookName);
         if (flag === 1) {
-            $('#borrowModal').modal('hide');
+            $('#addBookModal').modal('hide');
             $('#addAlert').hide();
         } else {
             $('#addAlert').text('添加失败');
@@ -23,14 +16,43 @@ $('#addBook').click(function () {
     }
 });
 
-$('#borrowModal').on('hidden.bs.modal', function () {
-    $('#main-board').load('library/library.html');
+$('#bookList').on('click', '.deleteBook', function () {
+    var dataItem = $.view(this).data;
+    $('#deleteBookModal').modal('show');
+    $('#inputDeleteBookId').val(dataItem.bookId);
+    $('#deleteBook').click(function () {
+        var inputBookId = $('#inputDeleteBookId').val();
+        if (isAllNumber(inputBookId)) {
+            var flag = libraryController.deleteBook(inputBookId);
+            if (flag === 1) {
+                $('#deleteBookModal').modal('hide');
+                $('#deleteAlert').hide();
+            } else {
+                $('#deleteAlert').text('删除失败');
+                $('#deleteAlert').slideDown();
+            }
+        } else {
+            $('#deleteAlert').text('请填写所有字段且确保符合规范');
+            $('#deleteAlert').slideDown();
+        }
+    });
 });
 
-var borrowJson = libraryController.getBorrowedBooks();
-var borrowObjs = jQuery.parseJSON(borrowJson);
-var template = $.templates('#borrowTemplate');
+$('#addBookModal').on('hidden.bs.modal', function () {
+    $('#libraryBoard').load('library/admin/admin.html');
+});
+
+$('#deleteBookModal').on('hidden.bs.modal', function () {
+    $('#libraryBoard').load('library/admin/admin.html');
+});
+
+var borrowedObjs = jQuery.parseJSON(libraryController.getAllBooks());
+var template = $.templates('#bookListTemplate');
+for (var i = 0; i < borrowedObjs.length; i++) {
+    bookDate = new Date(borrowedObjs[i].startDate);
+    borrowedObjs[i].dateStr = bookDate.toLocaleDateString();
+}
 var app = {
-    books: borrowObjs
+    books: borrowedObjs
 };
-template.link('#borrowed', app);
+template.link('#bookList', app);
